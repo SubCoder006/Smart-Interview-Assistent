@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   await connectDB();
-  const interviewSession = await Session.findOne({ _id: sessionId, userId: session.user.id });
+  const interviewSession = await Session.findOne({ _id: sessionId, userId: session.user.id }); // from sessions
   if (!interviewSession) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
