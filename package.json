@@ -4,15 +4,24 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run setup-pdf-worker && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "npm run setup-pdf-worker",
+    "setup-pdf-worker": "node -e \"const fs = require('fs'); const src = 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs'; const dst = 'public/pdf.worker.min.js'; if(fs.existsSync(src)) { fs.copyFileSync(src, dst); console.log('PDF worker copied'); }\""
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "framer-motion": "^12.38.0",
     "mongoose": "^9.3.3",
+    "nanoid": "^5.1.7",
     "next": "16.2.1",
+    "next-auth": "^4.24.13",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-toastify": "^11.0.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
