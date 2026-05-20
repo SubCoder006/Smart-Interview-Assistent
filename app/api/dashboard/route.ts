@@ -1,7 +1,7 @@
 // app/api/dashboard/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
-import Session from "@/models/Session";
+import Sessions from "@/models/Sessions";
 import User from "@/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     }
 
     // ── 4. Get recent sessions ───────────────────────────────────────────────
-    const recentSessions = await Session.find({
+    const recentSessions = await Sessions.find({
       userId: testUserId,
       createdAt: { $gt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, // Last 30 days
     })
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       .lean();
 
     // ── 5. Calculate additional stats ────────────────────────────────────────
-    const totalQuestionsPracticed = await Session.aggregate([
+    const totalQuestionsPracticed = await Sessions.aggregate([
       { $match: { userId: user._id } },
       { $group: { _id: null, total: { $sum: { $size: "$responses" } } } }
     ]);

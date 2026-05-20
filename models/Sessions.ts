@@ -1,4 +1,4 @@
-// models/Session.ts
+// models/Sessions.ts
 import mongoose, { Schema, Document, Model } from "mongoose";
 import { nanoid } from "nanoid";
 
@@ -184,7 +184,7 @@ SessionSchema.methods.recalculateScores = function () {
 
 // ─── Export ───────────────────────────────────────────────────────────────────
 
-const Session: Model<ISession> =
-  mongoose.models.Session ?? mongoose.model<ISession>("Session", SessionSchema);
+const Sessions: Model<ISession> =
+  mongoose.models.Sessions ?? mongoose.model<ISession>("Sessions", SessionSchema);
 
-export default Session;
+export default Sessions;

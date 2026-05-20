@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFeedback }               from "@/lib/ai";
 import connectDB                     from "@/lib/mongodb";
-import Session                       from "@/models/Session";
+import Sessions                       from "@/models/Sessions";
 import { getServerSession }          from "next-auth";
 import { authOptions }               from "@/lib/authOptions";
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     // ── 3. DB connect + ownership check ─────────────────────────────────────
     await connectDB();
 
-    const interviewSession = await Session.findOne({
+    const interviewSession = await Sessions.findOne({
       _id:    sessionId,
       userId: session.user.id,  // ensures user can only access their own sessions
     });

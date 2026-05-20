@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateQuestions }         from "@/lib/ai";
 import connectDB                     from "@/lib/mongodb";
-import Session                       from "@/models/Session";
+import Sessions                       from "@/models/Sessions";
 import User                          from "@/models/User";
 import { getServerSession }          from "next-auth";
 import { authOptions }               from "@/lib/authOptions"; // your NextAuth config
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     const generationMs = Date.now() - startTime;
 
     // ── 6. Save session to MongoDB ───────────────────────────────────────────
-    const newSession = await Session.create({
+    const newSession = await Sessions.create({
       userId:          user._id,
       role:            role.trim(),
       level:           level    ?? user.preferences.targetLevel,

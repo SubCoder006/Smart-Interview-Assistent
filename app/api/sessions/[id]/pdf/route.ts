@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/mongodb";
-import Session from "@/models/Session";
+import Sessions from "@/models/Sessions";
 import { generateConversationPDF } from "@/lib/generatePdf";
 import fs from "fs/promises";
 import path from "path";
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   await connectDB();
-  const interviewSession = await Session.findOne({ _id: sessionId, userId: session.user.id }); // from sessions
+  const interviewSession = await Sessions.findOne({ _id: sessionId, userId: session.user.id }); // from sessions
   if (!interviewSession) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }

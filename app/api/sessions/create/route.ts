@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import connectDB from "@/lib/mongodb";
-import Session from "@/models/Session";
+import Sessions from "@/models/Sessions";
 import User from "@/models/User";
 import { generateQuestions } from "@/lib/ai";
 import { authOptions } from "@/lib/authOptions";
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     const generationMs = Date.now() - startTime;
 
     // ── Create session with questions ────────────────────────────────────────
-    const newSession = await Session.create({
+    const newSession = await Sessions.create({
       userId: user._id,
       role: role.trim(),
       level: level || user.preferences?.targetLevel || "mid",
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      session: {
+      sessions: {
         _id: newSession._id,
         sessionCode: newSession.sessionCode,
       },
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     });
 
   } catch (error) {
-    console.error("[/api/session/create]", error);
+    console.error("[/api/sessions/create]", error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : "Server error" },
       { status: 500 }
