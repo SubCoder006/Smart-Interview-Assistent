@@ -382,7 +382,7 @@ export default function HistoryPage() {
                                 }}
                                 onClick={async (e) => {
                                   e.stopPropagation();
-                                  const res = await fetch(`/api/session/${s._id}/pdf?sessionId=${s._id}`);
+                                  const res = await fetch(`/api/sessions/${s._id}/pdf?sessionId=${s._id}`);
                                   if (res.ok) {
                                     const { url } = await res.json();
                                     window.open(url, '_blank');

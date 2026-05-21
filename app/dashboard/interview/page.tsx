@@ -111,7 +111,7 @@ export default function InterviewPage() {
     if (!form.role.trim()) { toast.error('Please enter a target role.'); return; }
     setLoading(true);
     try {
-      const res = await fetch('/api/session/create', {
+      const res = await fetch('/api/sessions/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),

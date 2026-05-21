@@ -110,7 +110,7 @@ export default function InterviewSessionPage({
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const res = await fetch(`/api/session/${id}`);
+        const res = await fetch(`/api/sessions/${id}`);
         if (!res.ok) {
           toast.error("Failed to load session");
           router.push("/dashboard/interview");
