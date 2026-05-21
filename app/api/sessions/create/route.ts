@@ -37,16 +37,32 @@ export async function POST(req: Request) {
       );
     }
 
-    // ── Generate questions ───────────────────────────────────────────────────
+
+    // ── Generate questions and track provider/model ──────────────────────────
     const startTime = Date.now();
-    const questions = await generateQuestions({
-      role: role.trim(),
-      level: level || user.preferences?.targetLevel || "mid",
-      resumeText: resumeText.trim() || "No resume provided",
-      difficulty: difficulty || user.preferences?.preferredDifficulty || "medium",
-      count: questionCount || user.preferences?.questionCount || 5,
-      skills: user.skills || [],
-    });
+    let questions, aiProvider, aiModel;
+    try {
+      if (process.env.AI_PROVIDER === "huggingface") {
+        aiProvider = "huggingface";
+        aiModel = process.env.HF_MODEL || "";
+      } else if (process.env.AI_PROVIDER === "ollama") {
+        aiProvider = "ollama";
+        aiModel = process.env.OLLAMA_MODEL || "";
+      } else {
+        aiProvider = "unknown";
+        aiModel = "";
+      }
+      questions = await generateQuestions({
+        role: role.trim(),
+        level: level || user.preferences?.targetLevel || "mid",
+        resumeText: resumeText.trim() || "No resume provided",
+        difficulty: difficulty || user.preferences?.preferredDifficulty || "medium",
+        count: questionCount || user.preferences?.questionCount || 5,
+        skills: user.skills || [],
+      });
+    } catch (e) {
+      throw e;
+    }
     const generationMs = Date.now() - startTime;
 
     // ── Create session with questions ────────────────────────────────────────
@@ -59,8 +75,8 @@ export async function POST(req: Request) {
       questions,
       status: "created",
       aiMeta: {
-        provider: process.env.AI_PROVIDER || "ollama",
-        model: process.env.OLLAMA_MODEL || process.env.HF_MODEL || "",
+        provider: aiProvider,
+        model: aiModel,
         generationMs,
         totalTokensUsed: 0,
       },

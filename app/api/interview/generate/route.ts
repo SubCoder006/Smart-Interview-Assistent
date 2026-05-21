@@ -46,18 +46,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── 5. Call AI ───────────────────────────────────────────────────────────
+
+    // ── 5. Call AI and track provider/model ──────────────────────────────────
     const startTime = Date.now();
-
-    const questions = await generateQuestions({
-      role:       role.trim(),
-      level:      level       ?? user.preferences.targetLevel,
-      resumeText: resumeText.trim(),
-      difficulty: difficulty  ?? user.preferences.preferredDifficulty,
-      count:      count       ?? user.preferences.questionCount,
-      skills:     user.skills,
-    });
-
+    let questions, aiProvider, aiModel;
+    try {
+      if (process.env.AI_PROVIDER === "huggingface") {
+        aiProvider = "huggingface";
+        aiModel = process.env.HF_MODEL || "";
+      } else if (process.env.AI_PROVIDER === "ollama") {
+        aiProvider = "ollama";
+        aiModel = process.env.OLLAMA_MODEL || "";
+      } else {
+        aiProvider = "unknown";
+        aiModel = "";
+      }
+      questions = await generateQuestions({
+        role:       role.trim(),
+        level:      level       ?? user.preferences.targetLevel,
+        resumeText: resumeText.trim(),
+        difficulty: difficulty  ?? user.preferences.preferredDifficulty,
+        count:      count       ?? user.preferences.questionCount,
+        skills:     user.skills,
+      });
+    } catch (e) {
+      throw e;
+    }
     const generationMs = Date.now() - startTime;
 
     // ── 6. Save session to MongoDB ───────────────────────────────────────────
@@ -70,8 +84,8 @@ export async function POST(req: NextRequest) {
       questions,
       status:          "created",
       aiMeta: {
-        provider:     process.env.AI_PROVIDER ?? "ollama",
-        model:        process.env.OLLAMA_MODEL ?? process.env.HF_MODEL ?? "",
+        provider:     aiProvider,
+        model:        aiModel,
         generationMs,
         totalTokensUsed: 0,
       },

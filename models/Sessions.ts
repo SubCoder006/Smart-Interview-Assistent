@@ -109,7 +109,7 @@ const ResponseSchema = new Schema<IResponse>(
 
 const SessionSchema = new Schema<ISession>(
   {
-    userId:     { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    userId:     { type: Schema.Types.ObjectId, ref: "User", required: true },
     sessionCode:{ type: String, unique: true, default: () => `INT-${nanoid(6).toUpperCase()}` },
 
     // user input

@@ -1,10 +1,11 @@
 // ─── Configuration ────────────────────────────────────────────────────────────
 
-const AI_PROVIDER  = (process.env.AI_PROVIDER ?? "ollama") as "ollama" | "huggingface";
-const OLLAMA_URL   = process.env.OLLAMA_BASE_URL ?? "http://localhost:11434";
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL    ?? "llama3.2";
-const HF_TOKEN     = process.env.HF_API_TOKEN;
-const HF_MODEL     = process.env.HF_MODEL        ?? "meta-llama/Meta-Llama-3-8B-Instruct";
+
+const AI_PROVIDER = (process.env.AI_PROVIDER as "ollama" | "huggingface" | undefined);
+const OLLAMA_URL   = process.env.OLLAMA_BASE_URL;
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL;
+const HF_TOKEN     = process.env.HF_TOKEN;
+const HF_MODEL     = process.env.HF_MODEL;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -157,7 +158,11 @@ async function withRetry<T>(
 
 // ─── Ollama provider ──────────────────────────────────────────────────────────
 
+
 async function callOllama(prompt: string): Promise<string> {
+  if (!OLLAMA_URL || !OLLAMA_MODEL) {
+    throw new Error("Ollama is not configured on this deployment.");
+  }
   const res = await fetch(`${OLLAMA_URL}/api/chat`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
@@ -166,7 +171,7 @@ async function callOllama(prompt: string): Promise<string> {
       stream: false,
       format: "json",
       options: {
-        temperature: 0.2,   // low temp = more deterministic, fewer hallucinations
+        temperature: 0.2,
         top_p:       0.9,
         num_predict: 2048,
       },
@@ -192,7 +197,7 @@ async function callOllama(prompt: string): Promise<string> {
 // ─── HuggingFace provider ─────────────────────────────────────────────────────
 
 async function callHuggingFace(prompt: string): Promise<string> {
-  if (!HF_TOKEN) throw new Error("HF_API_TOKEN is not set");
+  if (!HF_TOKEN) throw new Error("HF_TOKEN is not set");
 
   const res = await fetch(
     `https://api-inference.huggingface.co/models/${HF_MODEL}/v1/chat/completions`,
@@ -231,9 +236,17 @@ async function callHuggingFace(prompt: string): Promise<string> {
 
 // ─── Provider router ──────────────────────────────────────────────────────────
 
+
 async function callAI(prompt: string): Promise<string> {
-  const caller = AI_PROVIDER === "huggingface" ? callHuggingFace : callOllama;
-  return withRetry(() => caller(prompt));
+  if (AI_PROVIDER === "huggingface") {
+    if (!HF_TOKEN || !HF_MODEL) throw new Error("Hugging Face is not configured.");
+    return withRetry(() => callHuggingFace(prompt));
+  }
+  if (AI_PROVIDER === "ollama") {
+    if (!OLLAMA_URL || !OLLAMA_MODEL) throw new Error("Ollama is not configured.");
+    return withRetry(() => callOllama(prompt));
+  }
+  throw new Error("No AI provider is configured. Please set AI_PROVIDER to 'huggingface' and provide HF_TOKEN and HF_MODEL.");
 }
 
 // ─── Generate interview questions ─────────────────────────────────────────────
@@ -354,15 +367,15 @@ export async function checkAIHealth(): Promise<{
   status:   "ok" | "error";
   message?: string;
 }> {
-  const model = AI_PROVIDER === "huggingface" ? HF_MODEL : OLLAMA_MODEL;
+  const model = (AI_PROVIDER === "huggingface" ? HF_MODEL : OLLAMA_MODEL) || "";
   try {
     const raw    = await callAI('Output this JSON exactly: {"status":"ok"}');
     const parsed = safeParse<{ status: string }>(raw);
     if (parsed?.status !== "ok") throw new Error("Unexpected health response");
-    return { provider: AI_PROVIDER, model, status: "ok" };
+    return { provider: AI_PROVIDER || "", model, status: "ok" };
   } catch (err) {
     return {
-      provider: AI_PROVIDER,
+      provider: AI_PROVIDER || "",
       model,
       status:   "error",
       message:  err instanceof Error ? err.message : "Unknown error",
